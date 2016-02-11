@@ -1,7 +1,7 @@
 {
   "name": "distfs",
   "version": "0.1.0",
-  "description": "Mount your ES6 sources with a Babel-compiling userspace filesystem",
+  "description": "Mount your ES6 sources as a Babel-compiling userspace filesystem",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -12,6 +12,9 @@
     "dist",
     "build"
   ],
+  "bin": {
+    "distfs": "./bin/distfs.js"
+  },
   "author": "Marijn Haverbeke <marijnh@gmail.com>",
   "license": "MIT",
   "dependencies": {
