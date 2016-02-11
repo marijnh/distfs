@@ -1,0 +1,21 @@
+{
+  "name": "distfs",
+  "version": "0.1.0",
+  "description": "Mount your ES6 sources with a Babel-compiling userspace filesystem",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "babel",
+    "fuse",
+    "dist",
+    "build"
+  ],
+  "author": "Marijn Haverbeke <marijnh@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "fs-promise": "^0.4.1",
+    "fuse-bindings": "^2.8.1"
+  }
+}
