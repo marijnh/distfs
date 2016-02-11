@@ -1,6 +1,6 @@
 {
   "name": "distfs",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Mount your ES6 sources as a Babel-compiling userspace filesystem",
   "main": "index.js",
   "scripts": {
@@ -21,6 +21,6 @@
     "fuse-bindings": "^2.8.1"
   },
   "dependencies": {
-    "fs-promise": "^0.4.1",
+    "fs-promise": "^0.4.1"
   }
 }

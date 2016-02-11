@@ -28,10 +28,6 @@ var mount = new Mount({
       return new Buffer(babel.transform(buffer.toString(), {
         filename: path,
         sourceMaps: "inline",
-        // This comment is mostly there so that moduleserve's require
-        // can overwrite it with its function wrapper without
-        // confusing the source map.
-        auxiliaryCommentBefore: " File " + path + ". Built by distfs on " + (new Date) + " "
       }).code)
     } catch(e) {
       return new Buffer("console.error(" + JSON.stringify(e + "") + ")")
