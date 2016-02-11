@@ -122,7 +122,7 @@ CachedFile.prototype.read = function() {
     self.data = self.options.filter ? self.options.filter(self.path, content) : content
     self.mtime = new Date
     self.watching = fs.watch(self.path, self.listen.bind(self))
-    return content
+    return self.data
   })
 }
 
