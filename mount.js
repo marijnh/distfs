@@ -175,6 +175,15 @@ function stats(obj, size, mode) {
   }
 }
 
+function statsFor(obj) {
+  if (obj instanceof CachedDir)
+    return Promise.resolve({value: stats(obj, 4096, dirMode)})
+  else
+    return obj.content().then(function(content) {
+      return {value: stats(obj, content.length, fileMode)}
+    })
+}
+
 function wrapPromise(f) {
   return function() {
     var cb = arguments[arguments.length - 1]
@@ -202,14 +211,14 @@ var handlers = {
   }),
 
   getattr: wrapPromise(function(path) {
-    return this.resolve(path).then(function(obj) {
-      if (obj instanceof CachedDir)
-        return {value: stats(obj, 4096, dirMode)}
-      else
-        return obj.content().then(function(content) {
-          return {value: stats(obj, content.length, fileMode)}
-        })
-    })
+    return this.resolve(path).then(statsFor)
+  }),
+
+  fgetattr: wrapPromise(function(path, fd, cb) {
+    var found = this.fds[fd]
+    if (!found)
+      return Promise.reject({errno: fuse.EBADF})
+    return statsFor(found)
   }),
 
   open: wrapPromise(function(path, flags) {
