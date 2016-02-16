@@ -27,6 +27,7 @@ var mount = new Mount({
     try {
       return new Buffer(babel.transform(buffer.toString(), {
         filename: path,
+        sourceFileName: path,
         sourceMaps: "inline",
       }).code)
     } catch(e) {
