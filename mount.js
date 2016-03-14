@@ -2,13 +2,14 @@
 
 var fuse = require("fuse-bindings")
 var fs = require("fs-promise")
+var child_process = require("child_process")
 
 var dummy = {detach: function() {}}
 
-function CachedDir(path, stats, options) {
+function CachedDir(path, stats, mount) {
   this.path = path
   this.stats = stats
-  this.options = options
+  this.mount = mount
   this.upToDate = false
   this.cache = Object.create(null)
   this.updating = null
@@ -64,9 +65,9 @@ CachedDir.prototype.resolveEntry = function(name) {
     var fullName = this.path + "/" + name
     return fs.stat(fullName).then(function(stats) {
       if (stats.isDirectory())
-        return self.cache[name] = new CachedDir(fullName, stats, self.options)
+        return self.cache[name] = new CachedDir(fullName, stats, self.mount)
       if (stats.isFile())
-        return self.cache[name] = new CachedFile(fullName, stats, self.options)
+        return self.cache[name] = new CachedFile(fullName, stats, self.mount)
       delete self.cache[name]
       return null
     }).catch(function(err) {
@@ -86,10 +87,10 @@ CachedDir.prototype.resolve = function(path) {
   })
 }
 
-function CachedFile(path, stats, options) {
+function CachedFile(path, stats, mount) {
   this.path = path
   this.stats = stats
-  this.options = options
+  this.mount = mount
   this.data = null
   this.updating = null
   this.watching = null
@@ -101,8 +102,10 @@ CachedFile.prototype.listen = function() {
   this.watching.close()
   this.watching = null
   // When a file changed, we 'unlink' it (a no-op in this file system)
-  // to trigger an inotify.
-  fs.unlink(this.options.mountDir + this.path.slice(this.options.sourceDir.length))
+  // to trigger an inotify. Do this through a separate process so that
+  // we don't hang up the filesystem by having the same process on
+  // both sides of the syscall.
+  this.mount.deleter.send(this.mount.options.mountDir + this.path.slice(this.mount.options.sourceDir.length))
 }
 
 CachedFile.prototype.detach = function() {
@@ -119,7 +122,8 @@ CachedFile.prototype.read = function() {
   var self = this
   return this.updating = fs.readFile(this.path).then(function(content) {
     self.updating = null
-    self.data = self.options.filter ? self.options.filter(self.path, content) : content
+    var filter = self.mount.options.filter
+    self.data = filter ? filter(self.path, content) : content
     self.mtime = new Date
     self.watching = fs.watch(self.path, self.listen.bind(self))
     return self.data
@@ -131,7 +135,8 @@ var Mount = module.exports = function(options) {
   this.fds = []
   for (var i = 0; i < 10; i++) this.fds.push(null)
 
-  this.top = new CachedDir(options.sourceDir, fs.statSync(options.sourceDir), options)
+  this.top = new CachedDir(options.sourceDir, fs.statSync(options.sourceDir), this)
+  this.deleter = child_process.fork(__dirname + "/deleter")
 }
 
 Mount.prototype.mount = function() {
@@ -140,6 +145,7 @@ Mount.prototype.mount = function() {
 
 Mount.prototype.unmount = function(cb) {
   fuse.unmount(this.options.mountDir, cb)
+  this.deleter.kill()
 }
 
 Mount.prototype.openFD = function(file) {
