@@ -34,7 +34,7 @@ var mount = new Mount({
       return new Buffer("console.error(" + JSON.stringify(e + "") + ")")
     }
   },
-  mountOptions: ["nonempty"]
+  mountOptions: []
 })
 
 process.on("SIGINT", function () {
