@@ -19,6 +19,15 @@ var resolved = module_._resolveFilename("babel-core", {
 })
 var babel = require(resolved)
 
+var mountOptions;
+
+if (process.platform === 'darwin') {
+  // OS X Fuse does not support "nonempty" option
+  mountOptions = [];
+} else {
+  mountOptions = ["nonempty"];
+}
+
 var mount = new Mount({
   sourceDir: sourceDir,
   mountDir: mountDir,
@@ -34,7 +43,7 @@ var mount = new Mount({
       return new Buffer("console.error(" + JSON.stringify(e + "") + ")")
     }
   },
-  mountOptions: ["nonempty"]
+  mountOptions: mountOptions
 })
 
 process.on("SIGINT", function () {
